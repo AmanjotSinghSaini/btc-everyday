@@ -1,0 +1,51 @@
+name: Daily Bitcoin Price Tracker
+
+on:
+  schedule:
+    - cron: '0 1 * * *' # Runs every day at 11:00 PM UTC
+  workflow_dispatch:
+
+jobs:
+  fetch-analyze-btc:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Fetch Bitcoin price and update CSV
+      run: |
+        DATE_STR=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        PRICE=$(curl -s "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd" | jq -r '.bitcoin.usd')
+        FILE="btc_price_history.csv"
+        if [ ! -f "$FILE" ]; then
+          echo "date,btc_usd_price" > "$FILE"
+        fi
+        echo "$DATE_STR,$PRICE" >> "$FILE"
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+
+    - name: Install dependencies
+      run: |
+        pip install pandas matplotlib
+
+    - name: Generate price history plot
+      run: python plot_btc_price.py
+
+    - name: Update latest price in README
+      run: |
+        LATEST_PRICE=$(tail -n 1 btc_price_history.csv | cut -d',' -f2)
+        sed -i "/<!--BTC_PRICE-->/,<!--\/BTC_PRICE-->/c\\<!--BTC_PRICE-->$LATEST_PRICE<!--/BTC_PRICE-->" README.md
+
+    - name: Commit and push all changes
+      run: |
+        git config user.name "AmanjotSinghSaini"
+        git config user.email "amanjot1503@gmail.com"
+        git add btc_price_history.csv btc_price_history.png README.md
+        git commit -m "Update: BTC price, chart & README for $(date -u +"%Y-%m-%d")" || echo "No changes to commit"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
