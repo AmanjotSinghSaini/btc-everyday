@@ -1,8 +1,8 @@
-# 📈 Bitcoin Daily Price Tracker
+# Bitcoin Daily Price Tracker
 
 This project automatically fetches and charts the daily USD price of Bitcoin.
 
-## 📊 Latest Stats
+## Latest Stats
 
 ## Latest price (USD): <!--BTC_PRICE-->116565<!--/BTC_PRICE-->
 
