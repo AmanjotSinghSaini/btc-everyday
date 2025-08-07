@@ -36,7 +36,7 @@ jobs:
       run: python plot_btc_price.py
 
     - name: Update latest price in README
-        run: |
+      run: |
           LATEST_PRICE=$(tail -n 1 btc_price_history.csv | cut -d',' -f2)
           sed -i "s/<!--BTC_PRICE-->.*<!--\/BTC_PRICE-->/<!--BTC_PRICE-->$LATEST_PRICE<!--\/BTC_PRICE-->/" README.md
 
